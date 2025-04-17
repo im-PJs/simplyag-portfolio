@@ -1,0 +1,30 @@
+/* src/styles/navbar.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .nav-link {
+    position: relative;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0;
+    height: 2px;
+    /* hard‑coded gradient—no theme() calls */
+    background-image: linear-gradient(to right, #facc15, #eab308);
+    transition: width 0.3s ease;
+  }
+  .nav-link:hover::after,
+  .nav-link:focus::after {
+    width: 100%;
+  }
+}
