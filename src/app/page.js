@@ -1,11 +1,14 @@
-// src/app/page.jsx
-import Hero from '../components/Hero'
+import Hero from "../components/Hero"
+import Videos from "../components/Videos"
+import About from "../components/About"
 
 export default function HomePage() {
   return (
     <>
       <Hero />
-      {/* you can add your About / Videos / etc sections here */}
+      <Videos />
+      <About />
+      {/* later: <DIY /> <Blog /> <Contact /> */}
     </>
   )
 }
