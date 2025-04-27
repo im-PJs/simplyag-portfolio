@@ -71,7 +71,7 @@ export default async function Videos() {
     console.error(e)
     return (
       <section id="videos" className="py-16 bg-gray-900">
-        <p className="text-center text-red-400">
+      <p className="text-center text-red-400">
           Failed to load videos: {e.message}
         </p>
       </section>
