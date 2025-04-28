@@ -1,69 +1,94 @@
 // src/components/NavBar.jsx
 "use client"
 
-import Link from "next/link"
 import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 
 export default function NavBar() {
+  const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
-  const [open, setOpen] = useState(false)
-  const menu = ["About", "Videos", "DIY", "Blog", "Contact"]
+  const [menuOpen, setMenuOpen] = useState(false)
 
+  // 1) header background on scroll
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener("scroll", onScroll)
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
+  // 2) handle initial hash on "/"
+  useEffect(() => {
+    if (pathname === "/") {
+      const hash = window.location.hash.slice(1)
+      if (hash) {
+        setTimeout(() => {
+          const el = document.getElementById(hash)
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" })
+            if (hash === "home") history.replaceState(null, "", "/")
+          }
+        }, 50)
+      }
+    }
+  }, [pathname])
+
+  const menuItems = [
+    { label: "Videos", href: "/#videos" },
+    { label: "Merch", href: "https://SimplyAGCreations.etsy.com/" },
+    { label: "Blog", href: "/blog" },
+    { label: "About", href: "/#about" },
+  ]
+
+  // 3) Helper to render a menu link properly (external vs internal)
+  const renderLink = ({ label, href }, onClick) => {
+    const isExternal = href.startsWith("http")
+    return isExternal ? (
+      <a
+        key={href}
+        href={href}
+        className="nav-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}
+      >
+        {label}
+      </a>
+    ) : (
+      <Link key={href} href={href} className="nav-link" onClick={onClick}>
+        {label}
+      </Link>
+    )
+  }
+
   return (
     <>
       <header className={scrolled ? "header scrolled" : "header"}>
         <div className="inner">
-          <Link href="/" className="logo">
+          <Link href="/#home" className="logo">
             SimplyAG
           </Link>
 
           <nav className="desktop">
-            {menu.map((label) => (
-              <Link
-                key={label}
-                href={`#${label.toLowerCase()}`}
-                className="nav-link"
-              >
-                {label}
-              </Link>
-            ))}
-            <Link href="#contact" className="cta">
+            {menuItems.map((item) => renderLink(item))}
+            <Link href="/contact" className="cta">
               Get in Touch
             </Link>
           </nav>
 
           <button
             className="toggle"
-            onClick={() => setOpen(!open)}
+            onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
-            {open ? "✕" : "☰"}
+            {menuOpen ? "✕" : "☰"}
           </button>
         </div>
 
-        {open && (
+        {menuOpen && (
           <nav className="mobile">
-            {menu.map((label) => (
-              <Link
-                key={label}
-                href={`#${label.toLowerCase()}`}
-                onClick={() => setOpen(false)}
-                className="nav-link"
-              >
-                {label}
-              </Link>
-            ))}
-            <Link
-              href="#contact"
-              onClick={() => setOpen(false)}
-              className="cta"
-            >
+            {menuItems.map((item) => renderLink(item, () => setMenuOpen(false)))}
+            <Link href="/contact" className="nav-link" onClick={() => setMenuOpen(false)}>
               Get in Touch
             </Link>
           </nav>
@@ -75,119 +100,111 @@ export default function NavBar() {
           --gold: #D4AF37;
           --navy-rgb: 30, 41, 59;
         }
+        html {
+          scroll-behavior: smooth;
+        }
 
-        /* NAV CONTAINER */
         .header {
           position: fixed;
-          top: 0; left: 0; right: 0;
-          background: rgba(var(--navy-rgb), 0.6);  /* always semi‑opaque */
+          top: 0;
+          left: 0;
+          right: 0;
+          background: rgba(var(--navy-rgb), 0.6);
           backdrop-filter: blur(8px);
-          transition: background 0.3s, box-shadow 0.3s, border-bottom 0.3s;
+          transition: background 0.3s, box-shadow 0.3s;
           z-index: 50;
         }
         .header.scrolled {
           background: rgba(var(--navy-rgb), 0.85);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-          border-bottom: 1px solid rgba(255,255,255,0.2);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
-        /* INNER WRAPPER */
         .inner {
           max-width: 1280px;
           margin: 0 auto;
           padding: 1rem 1.5rem;
           display: flex;
-          align-items: center;
           justify-content: space-between;
+          align-items: center;
         }
-
-        /* LOGO */
         .logo {
-          font-size: 2rem !important;
-          font-weight: 900 !important;
-          color: var(--gold) !important;
-          letter-spacing: 0.1em !important;
-          text-shadow: 1px 1px 2px rgba(0,0,0,0.7) !important;
-          text-decoration: none !important;
+          font-size: 2rem;
+          font-weight: 900;
+          color: var(--gold);
+          text-decoration: none;
         }
 
-        /* DESKTOP NAV */
         .desktop {
           display: flex;
           align-items: center;
-          gap: 1.75rem;
+          gap: 1.5rem;
         }
         .nav-link {
           position: relative;
-          color: var(--gold) !important;
-          text-transform: uppercase !important;
-          font-weight: 600 !important;
-          letter-spacing: 0.08em !important;
-          font-size: 0.9rem !important;
-          text-decoration: none !important;
-          padding: 0.25rem 0 !important;
-          transition: color 0.2s !important;
-          text-shadow: 0 0 4px rgba(0,0,0,0.7) !important; /* boost contrast */
+          color: var(--gold);
+          text-transform: uppercase;
+          font-weight: 600;
+          font-size: 0.9rem;
+          text-decoration: none;
+          padding: 0.25rem 0;
+          cursor: pointer;
         }
         .nav-link::after {
-          content: "" !important;
-          position: absolute !important;
-          left: 0; bottom: -3px;
-          width: 0; height: 2px;
-          background: linear-gradient(to right, var(--gold), #FFD700) !important;
-          transition: width 0.3s ease !important;
-        }
-        .nav-link:hover {
-          color: #FFD700 !important;
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background: linear-gradient(to right, var(--gold), #ffd700);
+          transition: width 0.3s;
         }
         .nav-link:hover::after {
-          width: 100% !important;
+          width: 100%;
         }
 
-        /* GHOST CTA */
         .cta {
-          display: inline-block !important;
-          padding: 0.45rem 1.1rem !important;
-          border: 2px solid var(--gold) !important;
-          border-radius: 9999px !important;
-          color: var(--gold) !important;
-          text-transform: uppercase !important;
-          letter-spacing: 0.1em !important;
-          font-weight: 600 !important;
-          font-size: 0.85rem !important;
-          text-decoration: none !important;
-          transition: background 0.2s, color 0.2s !important;
+          padding: 0.45rem 1.1rem;
+          border: 2px solid var(--gold);
+          border-radius: 9999px;
+          color: var(--gold);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          font-weight: 600;
+          font-size: 0.85rem;
+          text-decoration: none;
+          transition: background 0.2s, color 0.2s;
         }
         .cta:hover {
-          background: var(--gold) !important;
-          color: #1e293b !important;
+          background: var(--gold);
+          color: #1e293b;
         }
 
-        /* MOBILE TOGGLE */
         .toggle {
           display: none;
           background: none;
           border: none;
-          color: var(--gold) !important;
+          color: var(--gold);
           font-size: 1.5rem;
           cursor: pointer;
         }
-
-        /* MOBILE NAV */
         @media (max-width: 768px) {
           .desktop {
-            display: none !important;
+            display: none;
           }
           .toggle {
-            display: block !important;
+            display: block;
           }
           .mobile {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            padding: 1rem 1.5rem;
             background: rgba(var(--navy-rgb), 0.95);
             backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+          }
+          .mobile .nav-link {
+            padding: 0.5rem 0;
           }
         }
       `}</style>

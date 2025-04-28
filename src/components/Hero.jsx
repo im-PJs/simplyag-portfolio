@@ -34,7 +34,7 @@ export default function Hero() {
       } while (next === current)
       setCurrent(next)
       isFirst.current = false
-    }, 20000) // 20 seconds between changes
+    }, 20000)
     return () => clearInterval(iv)
   }, [current, images])
 
@@ -51,58 +51,90 @@ export default function Hero() {
   const currImg = images[current]
   const prevImg = images[prev]
 
-  const commonStyles = {
+  const layerStyle = (url, opacity = 1) => ({
+    backgroundImage: `url('${url}')`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    filter: 'blur(8px)',
-    transform: 'scale(1.05)',
-  }
+    filter: 'blur(4px)',
+    transform: 'scale(1.03)',
+    opacity,
+  })
 
   return (
-    <section id="home" className="relative w-full h-screen overflow-hidden">
-      {/* previous image (static until new one fully fades in) */}
+    <section
+      id="home"
+      className="relative w-full min-h-[calc(100vh-4rem)] sm:h-screen overflow-hidden"
+    >
+      {/* Previous background (static until new one fully fades in) */}
       <div
         key={`prev-${prev}`}
         className="absolute inset-0"
-        style={{
-          backgroundImage: `url('${prevImg}')`,
-          ...commonStyles,
-        }}
+        style={layerStyle(prevImg, 1)}
       />
 
-      {/* current image (fades in over 8 seconds) */}
+      {/* Current background (fades in over 6 seconds) */}
       <div
         key={`curr-${current}`}
-        className="absolute inset-0 transition-opacity ease-in-out"
-        style={{
-          backgroundImage: `url('${currImg}')`,
-          opacity: fadeIn ? 1 : 0,
-          transitionDuration: '8000ms', // 8s fade
-          ...commonStyles,
-        }}
+        className="absolute inset-0 transition-opacity ease-in-out duration-[6000ms]"
+        style={layerStyle(currImg, fadeIn ? 1 : 0)}
       />
 
-      {/* dark tint overlay */}
-      <div
-        className="absolute inset-0"
-        style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-      />
+      {/* Gradient overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
 
-      {/* foreground content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-        <h1 className="text-white text-4xl md:text-6xl font-extrabold mb-4">
-          Your Front‑Row Pass to Coasters & Travel
-        </h1>
-        <p className="text-white text-base md:text-xl mb-8 max-w-xl">
-          We’re Andy & Gianna—sharing ride‑throughs, park tips, and DIY projects.
-        </p>
-        <Link
-          href="#videos"
-          className="px-6 py-3 bg-[#facc15] hover:bg-yellow-400 text-[#1e293b] font-semibold rounded uppercase tracking-wider transition-colors"
-        >
-          Watch Videos
-        </Link>
+      {/* Chevron indicator */}
+      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
+        <span className="block w-6 h-6 border-b-2 border-r-2 border-white rotate-45 animate-[bounce_2s_infinite]" />
       </div>
+
+      {/* Foreground content */}
+      <div className="relative z-20 flex flex-col items-center justify-center h-full text-center px-4 space-y-6">
+        <h1 className="text-white text-4xl sm:text-5xl md:text-7xl font-extrabold drop-shadow-lg leading-tight opacity-0 animate-fadeIn">
+          Join Andy &amp; Gianna<br />
+          Chasing Thrills &amp; Making Memories
+        </h1>
+        <p className="text-white text-base sm:text-lg md:text-2xl max-w-2xl opacity-0 animate-fadeIn delay-200">
+          Cinematic coaster POVs, park‑hacks, and off‑the‑beaten‑path adventures—live free, ride together.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 opacity-0 animate-fadeIn delay-400">
+          <Link
+            href="/#videos"
+            className="px-8 py-4 bg-[#facc15] hover:bg-yellow-400 text-[#1e293b] font-semibold rounded uppercase tracking-wide transition"
+          >
+            Watch Videos
+          </Link>
+          <a
+            href="https://www.youtube.com/@WeAreSimplyAG"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-[#1e293b] font-semibold rounded uppercase tracking-wide transition"
+          >
+            Subscribe
+          </a>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(1rem);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.8s forwards;
+        }
+        .delay-200 {
+          animation-delay: 0.2s;
+        }
+        .delay-400 {
+          animation-delay: 0.4s;
+        }
+      `}</style>
     </section>
   )
 }
