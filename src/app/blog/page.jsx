@@ -1,42 +1,65 @@
 // src/app/blog/page.jsx
 
-import Link from "next/link";
 import { client } from "@/lib/sanity";
+import BlogCard from "@/components/BlogCard";
+import BlogHeroBackground from "@/components/BlogHeroBackground";
 
-export const revalidate = 30; // optional, revalidate every 30s
+export const revalidate = 30;
 
-const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]|order(publishedAt desc)[0...12]{
-  _id, title, slug, publishedAt
-}`;
+const POSTS_QUERY = `
+  *[_type == "post" && defined(slug.current)]
+    | order(publishedAt desc)[0...12] {
+      _id,
+      title,
+      slug,
+      publishedAt,
+      image {
+        asset->{
+          _id,
+          url
+        }
+      }
+    }
+`;
 
 export default async function BlogPage() {
   const posts = await client.fetch(POSTS_QUERY);
 
   return (
-    <main className="container mx-auto min-h-screen max-w-4xl p-8">
-      <h1 className="text-4xl font-bold mb-4">Our Blog</h1>
-      <p className="text-gray-300 mb-12 max-w-2xl">
-        Trip reports, life updates, behind-the-scenes moments, and more. Just us, living it.
-      </p>
+    <div className="relative min-h-screen overflow-hidden">
+      <BlogHeroBackground />
 
-      {posts.length > 0 ? (
-        <div className="grid gap-8">
-          {posts.map((post) => (
-            <Link
-              key={post._id}
-              href={`/blog/${post.slug.current}`}
-              className="block bg-gray-800 rounded-lg p-6 hover:shadow-2xl transition-shadow"
-            >
-              <h2 className="text-2xl font-bold">{post.title}</h2>
-              <p className="text-gray-400 text-sm mt-1">
-                {new Date(post.publishedAt).toLocaleDateString()}
+      {/* Faded Section Background */}
+      <div className="relative z-10 container mx-auto max-w-7xl px-6 pt-36 pb-20">
+        <div className="bg-black/60 backdrop-blur-lg rounded-lg p-10">
+
+          {/* Title */}
+          <h1 className="text-6xl font-extrabold text-white text-center mb-6 drop-shadow-lg relative inline-block after:block after:h-1 after:bg-[#D4AF37] after:w-20 after:mx-auto after:mt-6">
+            Blog
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-white text-lg text-center mb-14 opacity-80">
+            Our latest adventures, stories, and theme park memories.
+          </p>
+
+          {/* Blog Cards */}
+          <div className="grid gap-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {posts.length > 0 ? (
+              posts.map((post) => (
+                <BlogCard key={post._id} post={post} />
+              ))
+            ) : (
+              <p className="text-center text-white text-lg">
+                No blog posts yet! Stay tuned 👀
               </p>
-            </Link>
-          ))}
+            )}
+          </div>
         </div>
-      ) : (
-        <p>No blog posts yet! Stay tuned 👀</p>
-      )}
-    </main>
+      </div>
+
+      {/* Bottom Fade Divider */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-0" />
+    </div>
   );
 }
