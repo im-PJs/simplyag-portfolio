@@ -7,4 +7,5 @@ export const client = createClient({
   dataset: "production",
   apiVersion: "2024-04-27", // today's date
   useCdn: false,
+  token: process.env.SANITY_API_TOKEN, // <-- THIS IS MISSING
 });

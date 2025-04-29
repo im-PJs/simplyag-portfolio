@@ -6,8 +6,9 @@ import BlogHeroBackground from "@/components/BlogHeroBackground";
 
 export const revalidate = 30;
 
+// ✅ Filter out drafts with this clause: !(_id in path("drafts.**"))
 const POSTS_QUERY = `
-  *[_type == "post" && defined(slug.current)]
+  *[_type == "post" && defined(slug.current) && !(_id in path("drafts.**"))]
     | order(publishedAt desc)[0...12] {
       _id,
       title,
