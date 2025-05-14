@@ -1,5 +1,3 @@
-// src/app/blog/[slug]/page.jsx
-
 import { notFound } from 'next/navigation';
 import { PortableText } from '@portabletext/react';
 import { client } from '@/lib/sanity';
@@ -12,7 +10,8 @@ async function getPost(slug) {
     slug,
     publishedAt,
     "imageUrl": image.asset->url,
-    body
+    body,
+    bodyHtml
   }`;
   return client.fetch(query, { slug });
 }
@@ -23,11 +22,12 @@ export async function generateMetadata({ params }) {
   const post = await getPost(slug);
   if (!post) return {};
 
-  const description =
-    Array.isArray(post.body) &&
-    post.body[0]?.children?.[0]?.text
+  const description = post.bodyHtml
+    ? post.bodyHtml.replace(/<[^>]+>/g, "").slice(0, 150)
+    : Array.isArray(post.body) &&
+      post.body[0]?.children?.[0]?.text
       ? post.body[0].children[0].text.slice(0, 150)
-      : '';
+      : "";
 
   return {
     title: `${post.title} | SimplyAG`,
@@ -79,35 +79,39 @@ export default async function BlogPostPage({ params }) {
         )}
 
         {/* Body */}
-        <div className="flex flex-col gap-6 text-lg leading-relaxed text-gray-300">
-          <PortableText
-            value={post.body}
-            components={{
-              marks: {
-                link: ({ value, children }) => (
-                  <a
-                    href={value.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#D4AF37] underline hover:opacity-80 transition-colors duration-200"
-                  >
-                    {children}
-                  </a>
-                ),
-              },
-              block: {
-                h2: ({ children }) => (
-                  <h2 className="text-3xl font-bold text-white mt-10 mb-4">{children}</h2>
-                ),
-                h3: ({ children }) => (
-                  <h3 className="text-2xl font-semibold text-white mt-8 mb-3">{children}</h3>
-                ),
-                normal: ({ children }) => (
-                  <p className="mb-4">{children}</p>
-                ),
-              },
-            }}
-          />
+        <div className="prose prose-invert max-w-none">
+          {post.bodyHtml ? (
+            <div dangerouslySetInnerHTML={{ __html: post.bodyHtml }} />
+          ) : (
+            <PortableText
+              value={post.body}
+              components={{
+                marks: {
+                  link: ({ value, children }) => (
+                    <a
+                      href={value.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#D4AF37] underline hover:opacity-80 transition-colors duration-200"
+                    >
+                      {children}
+                    </a>
+                  ),
+                },
+                block: {
+                  h2: ({ children }) => (
+                    <h2 className="text-3xl font-bold text-white mt-10 mb-4">{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-2xl font-semibold text-white mt-8 mb-3">{children}</h3>
+                  ),
+                  normal: ({ children }) => (
+                    <p className="mb-4">{children}</p>
+                  ),
+                },
+              }}
+            />
+          )}
         </div>
       </div>
 

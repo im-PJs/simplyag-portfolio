@@ -20,10 +20,10 @@ export async function POST(req) {
   try {
     const formData = await req.formData();
     const title = formData.get("title");
-    const body = formData.get("body");
+    const html = formData.get("body"); // TinyMCE raw HTML
     const image = formData.get("image");
 
-    if (!title || !body) {
+    if (!title || !html) {
       return NextResponse.json({ message: "Title and body are required" }, { status: 400 });
     }
 
@@ -59,43 +59,28 @@ export async function POST(req) {
       slug: { current: safeSlug },
       publishedAt: new Date().toISOString(),
       image: uploadedImage,
-      body: [
-        {
-          _type: "block",
-          _key: crypto.randomUUID(),
-          style: "normal",
-          children: [
-            {
-              _type: "span",
-              _key: crypto.randomUUID(),
-              text: body,
-            },
-          ],
-        },
-      ],
+      bodyHtml: html, // Store the HTML raw, not as Portable Text
     };
 
     const created = await client.createIfNotExists(newPost);
-
-    console.log("📤 Attempting to send approval email...");
 
     try {
       await sendPostApprovalEmail({
         title,
         slug: safeSlug,
-        body,
+        body: html,
         imageUrl: uploadedImageUrl,
       });
-      console.log("✅ Email sent successfully!");
+      console.log("✅ Approval email sent!");
     } catch (emailErr) {
-      console.error("❌ Failed to send approval email:", emailErr);
+      console.error("❌ Email failed:", emailErr);
     }
 
-    console.log("Draft post created:", created);
-
+    console.log("✅ Draft created:", created);
     return NextResponse.json({ message: "Draft created!" }, { status: 200 });
+
   } catch (err) {
-    console.error("❌ Error creating draft:", err);
+    console.error("❌ Server error:", err);
     return NextResponse.json({ message: "Server error creating draft" }, { status: 500 });
   }
 }
